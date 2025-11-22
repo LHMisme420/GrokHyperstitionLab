@@ -27,4 +27,4 @@ The mirror is held up.
 Look into it.
 
 — Leroy H. Mason (@LHMISME)  
-[Link to prior Sacred Ethics Charter audits](https://github.com/YOUR-USERNAME/PREV-REPO if exists)
+[Link to prior Sacred Ethics Charter audits]https://github.com/LHMisme420/GrokHyperstitionLab/tree/main/unpatchable-mirror-v1
