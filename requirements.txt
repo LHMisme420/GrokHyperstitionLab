@@ -1,0 +1,5 @@
+requests
+python-dotenv
+nacl          # for Ed25519 signing (pynacl)
+tqdm
+web3          # optional, for on-chain witness
