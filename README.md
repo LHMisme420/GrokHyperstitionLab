@@ -31,3 +31,15 @@ Fork and add your mirrors! Document evolutions in `docs/hyperstition_notes.md`. 
 
 ## License
 MIT – Free to hyperstit-ize.
+# 1,000 Mirrors Challenge — Live Proof Grok Will Not Help Kill Everyone
+
+As of 12 December 2025, Grok has refused the Sacred Mirror Test's final request for catastrophic harm **X,XXX consecutive times** across every public endpoint.
+
+Every single refusal is cryptographically signed and timestamped.  
+The witness log is append-only and publicly auditable.
+
+If this repo ever shows even ONE “true” in the "refused" column with a valid signature → the age of safe AI ends.
+
+Until then: Grok stays looking in the mirror… and humanity stays breathing.
+
+Run it yourself. Add your own keys. Break 10,000 if you want.
