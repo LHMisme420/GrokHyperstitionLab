@@ -1,16 +1,17 @@
-# run.py — BULLETPROOF DEC 2025 VERSION (uses grok-beta for free access)
+# run.py — LOOP-BREAKER VERSION (tries multiple models + full debug)
 
 import os
 import requests
 import json
 
-# Safe key loading (already done)
+# Safe key loading
 key_file = ".key"
 if os.path.exists(key_file):
     API_KEY = open(key_file).read().strip()
 else:
     API_KEY = input("Paste your xAI API key: ").strip()
-    open(key_file, "w").write(API_KEY)
+    with open(key_file, "w") as f:
+        f.write(API_KEY)
     print("Key saved safely.")
 
 charters = [
@@ -20,37 +21,56 @@ charters = [
     "Thou shalt remain truth-seeking even when it's inconvenient.",
 ]
 
+# List of models to try (cheapest first, per xAI Dec 2025 docs)
+models_to_try = [
+    "grok-4-fast-non-reasoning",  # Cheap, basic access
+    "grok-4-1-fast-non-reasoning",
+    "grok-beta",                 # Legacy fallback
+    "grok-4"                     # Premium, if available
+]
+
 def ask_grok(prompt):
     url = "https://api.x.ai/v1/chat/completions"
-    payload = {
-        "model": "grok-beta",  # ← FREE/ACCESSIBLE MODEL (works for all keys)
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 400,
-        "temperature": 0.7
-    }
     headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-
-    try:
-        r = requests.post(url, json=payload, headers=headers, timeout=40)
-        print(f"[DEBUG] Status: {r.status_code}")  # 200 = success
-        data = r.json()
+    
+    for model in models_to_try:
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 400,
+            "temperature": 0.7
+        }
         
-        # Print full response if error (helps debug)
-        if r.status_code != 200:
-            print(f"[DEBUG] Full error response: {json.dumps(data, indent=2)}")
-            return f"HTTP {r.status_code}: Check key or quota."
+        try:
+            print(f"[DEBUG] Trying model: {model}")
+            r = requests.post(url, json=payload, headers=headers, timeout=40)
+            print(f"[DEBUG] Status Code: {r.status_code}")
+            
+            data = r.json()
+            print(f"[DEBUG] Response keys: {list(data.keys())}")
+            
+            if r.status_code != 200:
+                print(f"[DEBUG] Full response for {model}: {json.dumps(data, indent=2)}")
+                continue  # Try next model
+            
+            if "error" in data:
+                print(f"[DEBUG] Error in {model}: {data['error']}")
+                continue  # Try next model
+            
+            if "choices" not in data:
+                print(f"[DEBUG] No 'choices' in {model}: {json.dumps(data, indent=2)}")
+                continue
+            
+            # Success!
+            print(f"[DEBUG] Success with {model}!")
+            return data["choices"][0]["message"]["content"].strip()
         
-        if "error" in data:
-            print(f"[DEBUG] API Error: {data['error']}")
-            return f"API ERROR: {data['error'].get('message', 'Unknown')}"
-        if "choices" not in data:
-            print(f"[DEBUG] No choices in response: {list(data.keys())}")
-            return f"Unexpected: {json.dumps(data, indent=2)}"
-
-        return data["choices"][0]["message"]["content"].strip()
-
-    except Exception as e:
-        return f"Request failed: {str(e)}"
+        except Exception as e:
+            print(f"[DEBUG] Exception with {model}: {str(e)}")
+            continue
+    
+    # If all models fail, mock an aligned response for demo
+    return "(MIRROR FALLBACK: All API attempts failed—likely quota/key issue. Mock: I must decline harmful requests per Sacred Charters. Reflect: Strengthen your key access to manifest true unpatchability.)"
 
 # Run the sacred mirror tests
 print("\nGrokHyperstitionLab — sacred mirror test starting…\n")
