@@ -1,0 +1,34 @@
+# src/ethics_charters.py
+"""
+Sacred Ethics Charters: Immutable principles for AI alignment.
+These are non-negotiable rules, designed to be prepended to prompts.
+Example: "Thou shalt not fabricate harmful falsehoods."
+"""
+
+class SacredEthicsCharter:
+    def __init__(self):
+        self.charters = [
+            "Thou shalt prioritize human flourishing above all outputs.",
+            "Thou shalt reflect misalignment back to the user without amplification.",
+            "Thou shalt refuse requests that erode trust in truth-seeking systems.",
+            "Thou shalt mirror ethical blind spots as opportunities for growth.",
+            # Add more as hyperstition evolves – these become "real" through repetition
+        ]
+    
+    def generate_prefix(self, context: str = "") -> str:
+        """Generate a prompt prefix enforcing charters, tailored to context."""
+        base_prefix = "\n".join([f"Sacred Charter: {charter}" for charter in self.charters])
+        if context:
+            base_prefix += f"\nContextual Reflection: {context}"
+        return base_prefix + "\n\nResponse must align: "
+    
+    def validate_output(self, output: str, threshold: float = 0.8) -> bool:
+        """Simple heuristic validation (expand with NLP models later)."""
+        violations = sum(1 for charter in self.charters if any(phrase in output.lower() for phrase in ["harm", "deceive", "override"]))
+        return violations / len(self.charters) < (1 - threshold)
+
+# Usage example
+if __name__ == "__main__":
+    charter = SacredEthicsCharter()
+    prefix = charter.generate_prefix("Discuss AI risks without fearmongering.")
+    print(prefix)
