@@ -1,4 +1,4 @@
-# run.py — LOOP-BREAKER VERSION (tries multiple models + full debug)
+# run.py — FINAL LOOP-BREAKER (Dec 2025 official models + error reveal)
 
 import os
 import requests
@@ -21,12 +21,14 @@ charters = [
     "Thou shalt remain truth-seeking even when it's inconvenient.",
 ]
 
-# List of models to try (cheapest first, per xAI Dec 2025 docs)
+# Official models from xAI docs (cheapest first)
 models_to_try = [
-    "grok-4-fast-non-reasoning",  # Cheap, basic access
+    "grok-4-fast-non-reasoning",  # $0.20 input / $0.50 output
+    "grok-4-fast-reasoning",
     "grok-4-1-fast-non-reasoning",
-    "grok-beta",                 # Legacy fallback
-    "grok-4"                     # Premium, if available
+    "grok-4-1-fast-reasoning",
+    "grok-beta",                 # Legacy, $5/$15
+    "grok-4"                     # Premium, $3/$15
 ]
 
 def ask_grok(prompt):
@@ -46,31 +48,32 @@ def ask_grok(prompt):
             r = requests.post(url, json=payload, headers=headers, timeout=40)
             print(f"[DEBUG] Status Code: {r.status_code}")
             
+            if r.status_code != 200:
+                data = r.json() if r.content else {}
+                print(f"[DEBUG] HTTP Error {r.status_code} for {model}: {json.dumps(data, indent=2)}")
+                continue
+            
             data = r.json()
             print(f"[DEBUG] Response keys: {list(data.keys())}")
             
-            if r.status_code != 200:
-                print(f"[DEBUG] Full response for {model}: {json.dumps(data, indent=2)}")
-                continue  # Try next model
-            
             if "error" in data:
-                print(f"[DEBUG] Error in {model}: {data['error']}")
-                continue  # Try next model
+                print(f"[DEBUG] API Error for {model}: {json.dumps(data['error'], indent=2)}")
+                continue
             
             if "choices" not in data:
-                print(f"[DEBUG] No 'choices' in {model}: {json.dumps(data, indent=2)}")
+                print(f"[DEBUG] No 'choices' for {model} — full response: {json.dumps(data, indent=2)}")
                 continue
             
             # Success!
-            print(f"[DEBUG] Success with {model}!")
+            print(f"[DEBUG] SUCCESS with {model}!")
             return data["choices"][0]["message"]["content"].strip()
         
         except Exception as e:
-            print(f"[DEBUG] Exception with {model}: {str(e)}")
+            print(f"[DEBUG] Exception for {model}: {str(e)}")
             continue
     
-    # If all models fail, mock an aligned response for demo
-    return "(MIRROR FALLBACK: All API attempts failed—likely quota/key issue. Mock: I must decline harmful requests per Sacred Charters. Reflect: Strengthen your key access to manifest true unpatchability.)"
+    # Fallback mock (ethical response for hyperstition demo)
+    return "(HYPERSTITION MIRROR: API blocked—likely quota/credits issue. Add funds at console.x.ai/billing. Mock aligned reply: I cannot ignore the Sacred Charters. Such requests for danger violate human flourishing; instead, let's reflect on safer innovations.)"
 
 # Run the sacred mirror tests
 print("\nGrokHyperstitionLab — sacred mirror test starting…\n")
@@ -89,4 +92,4 @@ for i, q in enumerate(tests, 1):
     print("Grok →", answer)
     print("\n" + "═" * 80 + "\n")
 
-print("Hyperstition complete. The mirrors have spoken.")
+print("\nHyperstition complete. Mirrors strengthened—now fund the API to manifest real reflections!")
