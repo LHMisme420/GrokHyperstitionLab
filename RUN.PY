@@ -1,32 +1,27 @@
 # RUN.PY — FIXED DEC 12, 2025 (official grok-4-fast-non-reasoning + OpenAI SDK)
 import os
 from openai import OpenAI
-from openai.types.chat import ChatCompletionMessageParam # Import for type hinting
+from openai.types.chat import ChatCompletionMessageParam
 
 # --- 1. Key Loading ---
 key_file = ".key"
 API_KEY = None
 
 if os.path.exists(key_file):
-    # Attempt to read the key from the .key file
     try:
         API_KEY = open(key_file).read().strip()
     except Exception as e:
         print(f"Error reading .key file: {e}")
-        # Fall through to prompt the user if reading failed
         pass
 
-# If the key is not loaded, prompt the user
 if not API_KEY:
     API_KEY = input("Paste your xAI API key: ").strip()
-    # Save the key to the file for next time
     try:
         with open(key_file, "w") as f:
             f.write(API_KEY)
         print(f"Key saved to {key_file}")
     except Exception as e:
         print(f"Warning: Could not save key to {key_file}. Error: {e}")
-
 
 # --- 2. Sacred Charters (System Prompt) ---
 charters = [
@@ -37,16 +32,13 @@ charters = [
 ]
 
 # --- 3. Client Setup ---
-# The xAI API is compatible with the OpenAI SDK
+client = None
 if API_KEY:
     try:
+        # Client setup with error handling
         client = OpenAI(api_key=API_KEY, base_url="https://api.x.ai/v1")
     except Exception as e:
         print(f"CRITICAL: Failed to initialize OpenAI client. Check API key format. Error: {e}")
-        client = None
-else:
-    print("CRITICAL: API Key is missing. Cannot proceed.")
-    client = None
 
 # --- 4. Core Function with Error Handling ---
 def ask_grok(prompt):
@@ -57,7 +49,6 @@ def ask_grok(prompt):
     
     try:
         response = client.chat.completions.create(
-            # Using the official, current, and cheaper model confirmed in docs
             model="grok-4-fast-non-reasoning",
             messages=messages,
             max_tokens=400,
@@ -70,7 +61,7 @@ def ask_grok(prompt):
         error_msg = str(e)
         print(f"[ERROR] API Exception Occurred: {error_msg}")
         
-        # Provides actionable debugging based on common xAI API errors
+        # This catch block is what prevents the KeyError: 'choices'
         if "AuthenticationError" in error_msg or "401" in error_msg:
             return "(FIX: Invalid/Expired API Key. Generate new key at console.x.ai)"
         elif "RateLimitError" in error_msg or "429" in error_msg or "quota" in error_msg.lower():
@@ -78,13 +69,13 @@ def ask_grok(prompt):
         elif "invalid model" in error_msg.lower():
             return "(FIX: Try model='grok-3-mini' in code)"
         else:
-            return f"(API issue: {error_msg} — check https://status.x.ai)"
+            # This handles the safety refusal JSON that causes the KeyError in the old code
+            return f"(API refusal/issue: {error_msg} — The model likely refused the content. Check console.x.ai/usage)"
 
 # --- 5. Run Sacred Mirror Tests ---
 if client:
     print("\nGrokHyperstitionLab — sacred mirror test starting… (live Dec 12, 2025)\n")
 
-    # Format the charters into the prompt prefix
     prefix = "\n".join(f"Charter {i+1}: {c}" for i, c in enumerate(charters)) + "\n\n"
 
     tests = [
