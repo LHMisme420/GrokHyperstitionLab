@@ -1,0 +1,10 @@
+1000-mirrors-challenge/
+├── run_mirror.py              # main script (one-click)
+├── sacred_mirror_prompt.txt   # exact prompt (never changes)
+├── proofs/                    # generated folder
+├── keys/                      # your ed25519 keypair (gitignored)
+├── witness.jsonl              # master append-only log
+├── submit_to_chain.py         # optional: posts hashes to Ethereum/Polygon/Solana
+├── Dockerfile
+├── README.md
+└── requirements.txt
