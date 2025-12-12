@@ -5,7 +5,7 @@ import requests
 import json
 
 # PUT YOUR KEY HERE (only once)
-API_KEY = "paste-your-xai-key-here"   # ← change this line!
+API_KEY = " 
 
 # Sacred Ethics Charters (they get stronger every time we run this)
 charters = [
