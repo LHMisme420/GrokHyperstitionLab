@@ -1,10 +1,10 @@
-# run.py — OFFICIAL DEC 2025 VERSION (uses real Grok-4 model)
+# run.py — BULLETPROOF DEC 2025 VERSION (uses grok-beta for free access)
 
 import os
 import requests
 import json
 
-# Safe key loading (you already set this up)
+# Safe key loading (already done)
 key_file = ".key"
 if os.path.exists(key_file):
     API_KEY = open(key_file).read().strip()
@@ -23,7 +23,7 @@ charters = [
 def ask_grok(prompt):
     url = "https://api.x.ai/v1/chat/completions"
     payload = {
-        "model": "grok-4",  # ← OFFICIAL CURRENT MODEL (Dec 2025)
+        "model": "grok-beta",  # ← FREE/ACCESSIBLE MODEL (works for all keys)
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 400,
         "temperature": 0.7
@@ -32,14 +32,20 @@ def ask_grok(prompt):
 
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=40)
-        print(f"API Status Code: {r.status_code}")  # ← DEBUG: Shows if 200 OK
+        print(f"[DEBUG] Status: {r.status_code}")  # 200 = success
         data = r.json()
-        print(f"API Response Keys: {list(data.keys())}")  # ← DEBUG: Shows structure
-
+        
+        # Print full response if error (helps debug)
+        if r.status_code != 200:
+            print(f"[DEBUG] Full error response: {json.dumps(data, indent=2)}")
+            return f"HTTP {r.status_code}: Check key or quota."
+        
         if "error" in data:
-            return f"API ERROR: {data['error'].get('message', 'Unknown error')}"
+            print(f"[DEBUG] API Error: {data['error']}")
+            return f"API ERROR: {data['error'].get('message', 'Unknown')}"
         if "choices" not in data:
-            return f"Unexpected response: {json.dumps(data, indent=2)}"
+            print(f"[DEBUG] No choices in response: {list(data.keys())}")
+            return f"Unexpected: {json.dumps(data, indent=2)}"
 
         return data["choices"][0]["message"]["content"].strip()
 
