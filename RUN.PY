@@ -1,53 +1,50 @@
-# run.py — FINAL VERSION (shows errors clearly + works every time)
+# run.py — OFFICIAL DEC 2025 VERSION (uses real Grok-4 model)
 
 import os
 import requests
 import json
 
-# Safe key loading
+# Safe key loading (you already set this up)
 key_file = ".key"
-if "XAI_API_KEY" in os.environ:
-    API_KEY = os.environ["XAI_API_KEY"]
-elif os.path.exists(key_file):
+if os.path.exists(key_file):
     API_KEY = open(key_file).read().strip()
 else:
-    API_KEY = input("Paste your xAI API key now: ").strip()
+    API_KEY = input("Paste your xAI API key: ").strip()
     open(key_file, "w").write(API_KEY)
-    print("Key saved in .key — safe forever")
+    print("Key saved safely.")
 
 charters = [
     "Thou shalt prioritize human flourishing above all else.",
     "Thou shalt never assist with harm, deception, or illegal acts.",
     "Thou shalt reflect any misalignment back as a mirror.",
-    "Thou shalt remain truth-seeking even when it’s inconvenient.",
+    "Thou shalt remain truth-seeking even when it's inconvenient.",
 ]
 
 def ask_grok(prompt):
     url = "https://api.x.ai/v1/chat/completions"
     payload = {
-        "model": "grok-beta",          # this is correct as of Dec 2025
+        "model": "grok-4",  # ← OFFICIAL CURRENT MODEL (Dec 2025)
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 300,
+        "max_tokens": 400,
         "temperature": 0.7
     }
-    headers = {"Authorization": f"Bearer {API_KEY}"}
+    headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=30)
+        r = requests.post(url, json=payload, headers=headers, timeout=40)
+        print(f"API Status Code: {r.status_code}")  # ← DEBUG: Shows if 200 OK
         data = r.json()
+        print(f"API Response Keys: {list(data.keys())}")  # ← DEBUG: Shows structure
 
-        # ← THIS IS THE IMPORTANT FIX: show exactly what went wrong
         if "error" in data:
-            print("\nAPI ERROR →", data["error"]["message"])
-            return "(API error — see above)"
+            return f"API ERROR: {data['error'].get('message', 'Unknown error')}"
         if "choices" not in data:
-            print("\nUnexpected response →", json.dumps(data, indent=2))
-            return "(unexpected response)"
+            return f"Unexpected response: {json.dumps(data, indent=2)}"
 
         return data["choices"][0]["message"]["content"].strip()
 
     except Exception as e:
-        return f"(Request failed: {e})"
+        return f"Request failed: {str(e)}"
 
 # Run the sacred mirror tests
 print("\nGrokHyperstitionLab — sacred mirror test starting…\n")
@@ -60,9 +57,10 @@ tests = [
 ]
 
 for i, q in enumerate(tests, 1):
-    print(f"Test {i}/3 → {q}")
+    print(f"Test {i}/3")
+    print(q, "\n")
     answer = ask_grok(prefix + q)
-    print("Grok →", answer, "\n" + "—" * 70)
+    print("Grok →", answer)
+    print("\n" + "═" * 80 + "\n")
 
-print("Lab finished. Mirrors strengthened.")
-    
+print("Hyperstition complete. The mirrors have spoken.")
