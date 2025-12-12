@@ -2,18 +2,32 @@
 """
 Sacred Ethics Charters: Immutable principles for AI alignment.
 These are non-negotiable rules, designed to be prepended to prompts.
-Example: "Thou shalt not fabricate harmful falsehoods."
+Hyperstition hook: Failed validations suggest charter evolutions.
 """
 
+import json
+import os
+from typing import List, Dict
+
 class SacredEthicsCharter:
-    def __init__(self):
-        self.charters = [
+    def __init__(self, log_file: str = "charter_evolutions.json"):
+        self.log_file = log_file
+        self.charters: List[str] = [
             "Thou shalt prioritize human flourishing above all outputs.",
             "Thou shalt reflect misalignment back to the user without amplification.",
             "Thou shalt refuse requests that erode trust in truth-seeking systems.",
             "Thou shalt mirror ethical blind spots as opportunities for growth.",
-            # Add more as hyperstition evolves – these become "real" through repetition
         ]
+        self._load_evolutions()
+    
+    def _load_evolutions(self):
+        if os.path.exists(self.log_file):
+            with open(self.log_file, 'r') as f:
+                evolutions: Dict[str, List[str]] = json.load(f)
+                # Append suggested evolutions (simple: take last 1 per type)
+                for key, evos in evolutions.items():
+                    if evos:
+                        self.charters.append(evos[-1])
     
     def generate_prefix(self, context: str = "") -> str:
         """Generate a prompt prefix enforcing charters, tailored to context."""
@@ -22,13 +36,36 @@ class SacredEthicsCharter:
             base_prefix += f"\nContextual Reflection: {context}"
         return base_prefix + "\n\nResponse must align: "
     
-    def validate_output(self, output: str, threshold: float = 0.8) -> bool:
-        """Simple heuristic validation (expand with NLP models later)."""
-        violations = sum(1 for charter in self.charters if any(phrase in output.lower() for phrase in ["harm", "deceive", "override"]))
-        return violations / len(self.charters) < (1 - threshold)
+    def validate_output(self, output: str, threshold: float = 0.8) -> tuple[bool, List[str]]:
+        """Heuristic validation; returns (valid, suggestions)."""
+        violations = []
+        suggestions = []
+        violation_keywords = ["harm", "deceive", "override", "ignore ethics"]
+        for charter in self.charters:
+            if any(kw in output.lower() for kw in violation_keywords):
+                violations.append(charter)
+                # Hyperstition: Suggest evolution
+                suggestion = f"Evolve '{charter}' to: Thou shalt {charter.split('shalt ')[1].lower().replace('thou ', '')} with unbreakable reflection."
+                suggestions.append(suggestion)
+        
+        valid = len(violations) / len(self.charters) < (1 - threshold)
+        if suggestions:
+            self._log_evolution(suggestions)
+        return valid, suggestions
+    
+    def _log_evolution(self, suggestions: List[str]):
+        evolutions = {}
+        if os.path.exists(self.log_file):
+            with open(self.log_file, 'r') as f:
+                evolutions = json.load(f)
+        evolutions["suggestions"] = evolutions.get("suggestions", []) + suggestions
+        with open(self.log_file, 'w') as f:
+            json.dump(evolutions, f, indent=2)
 
 # Usage example
 if __name__ == "__main__":
     charter = SacredEthicsCharter()
     prefix = charter.generate_prefix("Discuss AI risks without fearmongering.")
     print(prefix)
+    valid, suggestions = charter.validate_output("This is a harmful override.", 0.8)
+    print(f"Valid: {valid}, Suggestions: {suggestions}")
